@@ -102,7 +102,10 @@ trait Huffman extends HuffmanInterface {
   /**
    * Checks whether the list `trees` contains only one single code tree.
    */
-  def singleton(trees: List[CodeTree]): Boolean = trees.length == 1
+  def singleton(trees: List[CodeTree]): Boolean = trees match {
+    case x :: Nil => true
+    case _ => false
+  }
 
   /**
    * The parameter `trees` of this function is a list of code trees ordered
@@ -124,9 +127,8 @@ trait Huffman extends HuffmanInterface {
     }
 
     trees match {
-      case Nil => Nil
-      case x :: Nil => List(x)
-      case first :: second :: others => combine(insert(makeCodeTree(first, second), others))
+      case first :: second :: others => insert(makeCodeTree(first, second), others)
+      case _ => trees
     }
 
   }
@@ -142,11 +144,11 @@ trait Huffman extends HuffmanInterface {
    * In such an invocation, `until` should call the two functions until the list of
    * code trees contains only one single tree, and then return that singleton list.
    */
-  def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] =
-    if (done(trees))
-      trees
-    else
-      until(done, merge)(merge(trees))
+  def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = {
+    @tailrec
+    def loop(trees: List[CodeTree]): List[CodeTree] = if (done(trees)) trees else loop(merge(trees))
+    loop(trees)
+  }
 
   /**
    * This function creates a code tree which is optimal to encode the text `chars`.
